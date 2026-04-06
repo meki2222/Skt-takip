@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#1D9E75">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SKT Takip">
+<title>SKT Takip</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f5;color:#111;min-height:100vh;overscroll-behavior:none}
+.app{max-width:480px;margin:0 auto;padding-bottom:80px}
+.topbar{background:#fff;border-bottom:1px solid #e8e8e8;padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar-icon{width:36px;height:36px;background:#E1F5EE;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.topbar h1{font-size:17px;font-weight:600;color:#111}
+.topbar-sub{font-size:11px;color:#888;margin-top:1px}
+.notif-bar{background:#fff;border-bottom:1px solid #e8e8e8;padding:11px 16px;display:flex;align-items:center;justify-content:space-between}
+.notif-bar span{font-size:13px;color:#555}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.slider-tog{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:22px;transition:.2s}
+.slider-tog:before{content:'';position:absolute;width:18px;height:18px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+input:checked+.slider-tog{background:#1D9E75}
+input:checked+.slider-tog:before{transform:translateX(18px)}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px}
+.stat-card{background:#fff;border-radius:12px;padding:12px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.stat-num{font-size:24px;font-weight:600}
+.stat-lbl{font-size:10px;color:#888;margin-top:2px;line-height:1.3}
+.stat-card.danger .stat-num{color:#A32D2D}
+.stat-card.warn .stat-num{color:#854F0B}
+.stat-card.good .stat-num{color:#3B6D11}
+.section{padding:0 12px 8px}
+.section-title{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px;padding-top:4px}
+.scan-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:#1D9E75;color:#fff;border:none;border-radius:14px;font-size:15px;font-weight:600;cursor:pointer;margin-bottom:10px;-webkit-appearance:none}
+.scan-btn:active{opacity:.85;transform:scale(.99)}
+.backup-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.bk-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border-radius:12px;font-size:13px;font-weight:500;cursor:pointer;border:none;-webkit-appearance:none}
+.bk-btn:active{opacity:.8}
+.bk-btn.download{background:#EAF3DE;color:#27500A}
+.bk-btn.restore{background:#E6F1FB;color:#0C447C}
+.last-backup{font-size:11px;color:#aaa;text-align:center;padding:4px 0 10px}
+.alert-banner{background:#FFF0F0;border:1px solid #FECACA;border-radius:12px;padding:12px 14px;margin:0 12px 8px;display:flex;align-items:flex-start;gap:10px}
+.alert-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.alert-text{font-size:13px;color:#7F1D1D;font-weight:600}
+.alert-sub{font-size:11px;color:#B91C1C;margin-top:2px}
+.product-card{background:#fff;border-radius:14px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.05);overflow:hidden;position:relative}
+.product-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px}
+.product-card.expired::before{background:#E24B4A}
+.product-card.soon::before{background:#EF9F27}
+.product-card.ok::before{background:#639922}
+.prod-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;background:#f5f5f5}
+.prod-info{flex:1;min-width:0}
+.prod-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#111}
+.prod-barcode{font-size:11px;color:#aaa;margin-top:2px}
+.prod-meta{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+.badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500}
+.badge.expired{background:#FEE2E2;color:#B91C1C}
+.badge.soon{background:#FEF3C7;color:#92400E}
+.badge.ok{background:#D1FAE5;color:#065F46}
+.prod-date{font-size:11px;color:#aaa}
+.del-btn{width:34px;height:34px;border:1px solid #eee;background:#fff;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.del-btn:active{background:#FEE2E2}
+.empty{text-align:center;padding:50px 20px;color:#aaa}
+.empty-icon{font-size:56px;margin-bottom:12px}
+.empty-title{font-size:15px;color:#888;font-weight:500}
+.empty-sub{font-size:13px;margin-top:4px}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:24px 24px 0 0;padding:20px 16px 32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-handle{width:40px;height:4px;background:#e0e0e0;border-radius:4px;margin:0 auto 16px}
+.modal h2{font-size:17px;font-weight:600;margin-bottom:16px;color:#111}
+.form-group{margin-bottom:14px}
+.form-group label{font-size:12px;color:#888;display:block;margin-bottom:5px;font-weight:500}
+.form-group input,.form-group select{width:100%;padding:12px;border:1.5px solid #e8e8e8;border-radius:10px;font-size:15px;background:#fff;color:#111;-webkit-appearance:none;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:#1D9E75}
+.form-row{display:grid;grid-template-columns:1.5fr 1fr;gap:10px}
+.btn-row{display:flex;gap:8px;margin-top:8px}
+.btn-primary{flex:1;padding:14px;background:#1D9E75;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;-webkit-appearance:none}
+.btn-primary:active{opacity:.85}
+.btn-cancel{padding:14px 18px;background:#f5f5f5;border:none;border-radius:12px;font-size:15px;cursor:pointer;color:#555;-webkit-appearance:none}
+.scanner-wrap{margin-bottom:14px}
+#reader{width:100%;border-radius:12px;overflow:hidden;background:#000;min-height:200px}
+.scanner-close{margin-top:8px;width:100%;padding:11px;border:1.5px solid #e8e8e8;border-radius:10px;background:#f5f5f5;font-size:14px;cursor:pointer;color:#555}
+.cam-btn{padding:12px 14px;background:#E1F5EE;border:1.5px solid #9FE1CB;border-radius:10px;cursor:pointer;font-size:20px;-webkit-appearance:none;flex-shrink:0}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;max-width:90vw}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-icon">🍪</div>
+    <div>
+      <h1>SKT Takip</h1>
+      <div class="topbar-sub">Son kullanım tarihi yönetimi</div>
+    </div>
+  </div>
+
+  <div class="notif-bar">
+    <span>📢 Günlük bildirimler</span>
+    <label class="toggle"><input type="checkbox" id="notifToggle" onchange="toggleNotif()"><span class="slider-tog"></span></label>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card danger">
+      <div class="stat-num" id="expiredCount">0</div>
+      <div class="stat-lbl">Süresi<br>dolmuş</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="stat-num" id="soonCount">0</div>
+      <div class="stat-lbl">Bu hafta<br>bitiyor</div>
+    </div>
+    <div class="stat-card good">
+      <div class="stat-num" id="okCount">0</div>
+      <div class="stat-lbl">Geçerli<br>ürün</div>
+    </div>
+  </div>
+
+  <div id="alertBanners"></div>
+
+  <div class="section">
+    <button class="scan-btn" onclick="openAdd()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3m0 4h4m-4-4v4"/></svg>
+      Barkod Tara / Ürün Ekle
+    </button>
+
+    <div class="section-title">Yedekleme</div>
+    <div class="backup-row">
+      <button class="bk-btn download" onclick="downloadBackup()">
+        ⬇️ Yedeği İndir
+      </button>
+      <button class="bk-btn restore" onclick="document.getElementById('restoreFile').click()">
+        ⬆️ Yedek Yükle
+      </button>
+    </div>
+    <div class="last-backup" id="lastBackupInfo">Henüz yedek alınmadı</div>
+    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(event)">
+  </div>
+
+  <div class="section">
+    <div class="section-title">Ürünlerim <span id="productCountLabel" style="font-weight:400;text-transform:none;letter-spacing:0"></span></div>
+    <div id="productList"></div>
+  </div>
+</div>
+
+<!-- Ürün Ekle Modal -->
+<div class="modal-overlay" id="addModal" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modalBox">
+    <div class="modal-handle"></div>
+    <h2>Ürün Ekle</h2>
+
+    <div class="scanner-wrap" id="scannerContainer" style="display:none">
+      <div id="reader"></div>
+      <button class="scanner-close" onclick="stopScanner()">Tarayıcıyı Kapat</button>
+    </div>
+
+    <div class="form-group">
+      <label>Barkod (opsiyonel)</label>
+      <div style="display:flex;gap:6px">
+        <input type="text" id="barcodeInput" placeholder="Barkod numarası" style="flex:1">
+        <button class="cam-btn" onclick="startScanner()">📷</button>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Ürün Adı *</label>
+      <input type="text" id="productName" placeholder="örn. Ülker Çikolata">
+    </div>
+
+    <div class="form-group">
+      <label>Kategori</label>
+      <select id="productCat">
+        <option value="🍪">🍪 Bisküvi & Kraker</option>
+        <option value="🍫">🍫 Çikolata & Şeker</option>
+        <option value="🥛">🥛 Süt & Süt Ürünleri</option>
+        <option value="🥤">🥤 İçecek</option>
+        <option value="🍞">🍞 Ekmek & Unlu Mamul</option>
+        <option value="🥫">🥫 Konserve & Hazır Gıda</option>
+        <option value="💊">💊 İlaç & Vitamin</option>
+        <option value="🧴">🧴 Kişisel Bakım</option>
+        <option value="🧹">🧹 Temizlik Ürünü</option>
+        <option value="🛒">🛒 Diğer</option>
+      </select>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Son Kullanım Tarihi *</label>
+        <input type="date" id="expiryDate">
+      </div>
+      <div class="form-group">
+        <label>Adet</label>
+        <input type="number" id="productQty" value="1" min="1" max="999">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-cancel" onclick="closeModal()">Vazgeç</button>
+      <button class="btn-primary" onclick="saveProduct()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+let products = JSON.parse(localStorage.getItem('sktProducts') || '[]');
+let scanner = null;
+let notifInterval = null;
+
+function save() {
+  localStorage.setItem('sktProducts', JSON.stringify(products));
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function daysLeft(dateStr) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const exp = new Date(dateStr); exp.setHours(0,0,0,0);
+  return Math.round((exp - now) / (1000 * 60 * 60 * 24));
+}
+
+function updateLastBackupInfo() {
+  const ts = localStorage.getItem('sktLastBackup');
+  const el = document.getElementById('lastBackupInfo');
+  if (ts) {
+    const d = new Date(ts);
+    el.textContent = 'Son yedek: ' + d.toLocaleDateString('tr-TR') + ' saat ' + d.toLocaleTimeString('tr-TR', {hour:'2-digit',minute:'2-digit'});
+  } else {
+    el.textContent = 'Henüz yedek alınmadı';
+  }
+}
+
+function downloadBackup() {
+  const data = { version: 1, exportDate: new Date().toISOString(), productCount: products.length, products };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const dateStr = new Date().toISOString().slice(0, 10);
+  a.download = 'skt-yedek-' + dateStr + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  localStorage.setItem('sktLastBackup', new Date().toISOString());
+  updateLastBackupInfo();
+  showToast('✅ Yedek dosyası indirildi');
+}
+
+function restoreBackup(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.products || !Array.isArray(data.products)) throw new Error('Geçersiz');
+      if (!confirm('Mevcut ' + products.length + ' ürün silinip yerine ' + data.products.length + ' ürün yüklenecek.\nDevam edilsin mi?')) return;
+      products = data.products;
+      save();
+      render();
+      showToast('✅ ' + products.length + ' ürün geri yüklendi');
+    } catch(err) {
+      alert('Hatalı dosya! Lütfen geçerli bir SKT yedek dosyası seçin.');
+    }
+    event.target.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function render() {
+  const list = document.getElementById('productList');
+  const alerts = document.getElementById('alertBanners');
+  const countLabel = document.getElementById('productCountLabel');
+  let exp = 0, soon = 0, ok = 0;
+  alerts.innerHTML = '';
+
+  if (products.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📦</div><div class="empty-title">Henüz ürün eklenmedi</div><div class="empty-sub">Barkod okutarak veya manuel girerek başlayın</div></div>';
+    countLabel.textContent = '';
+    updateStats(0, 0, 0);
+    return;
+  }
+
+  countLabel.textContent = '(' + products.length + ')';
+  const sorted = [...products].sort((a, b) => new Date(a.expiry) - new Date(b.expiry));
+  list.innerHTML = '';
+
+  sorted.forEach(p => {
+    const d = daysLeft(p.expiry);
+    let cls, badge, badgeTxt;
+
+    if (d < 0) {
+      cls = 'expired'; exp++;
+      badgeTxt = Math.abs(d) + ' gün önce doldu';
+      badge = 'expired';
+      alerts.innerHTML += `<div class="alert-banner">
+        <div class="alert-icon">⚠️</div>
+        <div>
+          <div class="alert-text">${p.name} süresi dolmuş!</div>
+          <div class="alert-sub">Lütfen bu ürünü raftan kaldırın</div>
+        </div>
+      </div>`;
+    } else if (d <= 7) {
+      cls = 'soon'; soon++;
+      badgeTxt = d === 0 ? 'Bugün bitiyor' : d + ' gün kaldı';
+      badge = 'soon';
+    } else {
+      cls = 'ok'; ok++;
+      badgeTxt = d + ' gün kaldı';
+      badge = 'ok';
+    }
+
+    const dateStr = new Date(p.expiry).toLocaleDateString('tr-TR');
+
+    list.innerHTML += `<div class="product-card ${cls}">
+      <div class="prod-icon">${p.cat}</div>
+      <div class="prod-info">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-barcode">${p.barcode} • ${p.qty} adet</div>
+        <div class="prod-meta">
+          <span class="badge ${badge}">${badgeTxt}</span>
+          <span class="prod-date">${dateStr}</span>
+        </div>
+      </div>
+      <button class="del-btn" onclick="deleteProduct('${p.id}')">🗑️</button>
+    </div>`;
+  });
+
+  updateStats(exp, soon, ok);
+}
+
+function updateStats(e, s, o) {
+  document.getElementById('expiredCount').textContent = e;
+  document.getElementById('soonCount').textContent = s;
+  document.getElementById('okCount').textContent = o;
+}
+
+function openAdd() {
+  document.getElementById('addModal').classList.add('show');
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('expiryDate').value = today;
+}
+
+function closeModal() {
+  stopScanner();
+  document.getElementById('addModal').classList.remove('show');
+  document.getElementById('barcodeInput').value = '';
+  document.getElementById('productName').value = '';
+  document.getElementById('productQty').value = '1';
+  document.getElementById('productCat').selectedIndex = 0;
+}
+
+function handleOverlayClick(e) {
+  if (e.target === document.getElementById('addModal')) closeModal();
+}
+
+function startScanner() {
+  document.getElementById('scannerContainer').style.display = 'block';
+  scanner = new Html5Qrcode('reader');
+  scanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 150 } },
+    (code) => {
+      document.getElementById('barcodeInput').value = code;
+      stopScanner();
+      document.getElementById('productName').focus();
+      showToast('✅ Barkod okundu: ' + code);
+    }
+  ).catch(() => {
+    alert('Kamera erişimi reddedildi. Tarayıcı ayarlarından izin verin.');
+    document.getElementById('scannerContainer').style.display = 'none';
+  });
+}
+
+function stopScanner() {
+  if (scanner) {
+    try { scanner.stop(); } catch(e) {}
+    scanner = null;
+  }
+  document.getElementById('scannerContainer').style.display = 'none';
+}
+
+function saveProduct() {
+  const barcode = document.getElementById('barcodeInput').value.trim();
+  const name = document.getElementById('productName').value.trim();
+  const expiry = document.getElementById('expiryDate').value;
+  const cat = document.getElementById('productCat').value;
+  const qty = parseInt(document.getElementById('productQty').value) || 1;
+
+  if (!name) { alert('Lütfen ürün adı girin.'); return; }
+  if (!expiry) { alert('Lütfen son kullanım tarihi girin.'); return; }
+
+  products.push({
+    id: Date.now().toString(),
+    barcode: barcode || 'Manuel',
+    name,
+    expiry,
+    cat,
+    qty,
+    added: new Date().toISOString()
+  });
+
+  save();
+  render();
+  closeModal();
+  showToast('✅ ' + name + ' eklendi');
+}
+
+function deleteProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!confirm((p ? p.name : 'Ürün') + ' silinsin mi?')) return;
+  products = products.filter(x => x.id !== id);
+  save();
+  render();
+  showToast('🗑️ Ürün silindi');
+}
+
+function checkAndNotify() {
+  const expired = products.filter(p => daysLeft(p.expiry) < 0);
+  const soon = products.filter(p => { const d = daysLeft(p.expiry); return d >= 0 && d <= 3; });
+  let parts = [];
+  if (expired.length) parts.push(expired.length + ' ürünün süresi dolmuş!');
+  if (soon.length) parts.push(soon.length + ' ürün 3 gün içinde bitiyor!');
+  if (parts.length && 'Notification' in window && Notification.permission === 'granted') {
+    new Notification('🍪 SKT Takip', {
+      body: parts.join(' '),
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🍪</text></svg>'
+    });
+  }
+}
+
+function toggleNotif() {
+  const on = document.getElementById('notifToggle').checked;
+  if (on) {
+    if ('Notification' in window) {
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') {
+          checkAndNotify();
+          notifInterval = setInterval(checkAndNotify, 24 * 60 * 60 * 1000);
+          localStorage.setItem('sktNotif', '1');
+          showToast('🔔 Bildirimler açıldı');
+        } else {
+          document.getElementById('notifToggle').checked = false;
+          alert('Bildirim izni reddedildi.\nTarayıcı ayarlarından bu siteye izin verin.');
+        }
+      });
+    } else {
+      alert('Bu tarayıcı bildirimleri desteklemiyor.');
+      document.getElementById('notifToggle').checked = false;
+    }
+  } else {
+    if (notifInterval) clearInterval(notifInterval);
+    localStorage.removeItem('sktNotif');
+    showToast('🔕 Bildirimler kapatıldı');
+  }
+}
+
+// Başlangıç
+if (localStorage.getItem('sktNotif') === '1') {
+  document.getElementById('notifToggle').checked = true;
+  if ('Notification' in window && Notification.permission === 'granted') {
+    checkAndNotify();
+    notifInterval = setInterval(checkAndNotify, 24 * 60 * 60 * 1000);
+  }
+}
+updateLastBackupInfo();
+render();
+</script>
+</body>
+</html>
