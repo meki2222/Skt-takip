@@ -19,6 +19,8 @@ body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f5;color:#11
 .topbar-sub{font-size:11px;color:#888;margin-top:1px}
 .notif-bar{background:#fff;border-bottom:1px solid #e8e8e8;padding:11px 16px;display:flex;align-items:center;justify-content:space-between}
 .notif-bar span{font-size:13px;color:#555}
+.sound-bar{background:#fff;border-bottom:1px solid #e8e8e8;padding:11px 16px;display:flex;align-items:center;justify-content:space-between}
+.sound-bar span{font-size:13px;color:#555}
 .toggle{position:relative;width:40px;height:22px;flex-shrink:0}
 .toggle input{opacity:0;width:0;height:0}
 .slider-tog{position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:22px;transition:.2s}
@@ -67,8 +69,6 @@ input:checked+.slider-tog:before{transform:translateX(18px)}
 .empty-icon{font-size:56px;margin-bottom:12px}
 .empty-title{font-size:15px;color:#888;font-weight:500}
 .empty-sub{font-size:13px;margin-top:4px}
-
-/* Modal */
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:flex-end;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal{background:#fff;border-radius:24px 24px 0 0;padding:20px 16px 32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
@@ -87,8 +87,6 @@ input:checked+.slider-tog:before{transform:translateX(18px)}
 #reader{width:100%;border-radius:12px;overflow:hidden;background:#000;min-height:200px}
 .scanner-close{margin-top:8px;width:100%;padding:11px;border:1.5px solid #e8e8e8;border-radius:10px;background:#f5f5f5;font-size:14px;cursor:pointer;color:#555}
 .cam-btn{padding:12px 14px;background:#E1F5EE;border:1.5px solid #9FE1CB;border-radius:10px;cursor:pointer;font-size:20px;-webkit-appearance:none;flex-shrink:0}
-
-/* Toast */
 .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:10px 20px;border-radius:24px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;max-width:90vw}
 .toast.show{opacity:1}
 </style>
@@ -106,6 +104,11 @@ input:checked+.slider-tog:before{transform:translateX(18px)}
   <div class="notif-bar">
     <span>📢 Günlük bildirimler</span>
     <label class="toggle"><input type="checkbox" id="notifToggle" onchange="toggleNotif()"><span class="slider-tog"></span></label>
+  </div>
+
+  <div class="sound-bar">
+    <span>🔊 Açılışta sesli uyarı</span>
+    <label class="toggle"><input type="checkbox" id="soundToggle" onchange="toggleSound()"><span class="slider-tog"></span></label>
   </div>
 
   <div class="stats-row">
@@ -130,15 +133,10 @@ input:checked+.slider-tog:before{transform:translateX(18px)}
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3m0 4h4m-4-4v4"/></svg>
       Barkod Tara / Ürün Ekle
     </button>
-
     <div class="section-title">Yedekleme</div>
     <div class="backup-row">
-      <button class="bk-btn download" onclick="downloadBackup()">
-        ⬇️ Yedeği İndir
-      </button>
-      <button class="bk-btn restore" onclick="document.getElementById('restoreFile').click()">
-        ⬆️ Yedek Yükle
-      </button>
+      <button class="bk-btn download" onclick="downloadBackup()">⬇️ Yedeği İndir</button>
+      <button class="bk-btn restore" onclick="document.getElementById('restoreFile').click()">⬆️ Yedek Yükle</button>
     </div>
     <div class="last-backup" id="lastBackupInfo">Henüz yedek alınmadı</div>
     <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreBackup(event)">
@@ -150,17 +148,14 @@ input:checked+.slider-tog:before{transform:translateX(18px)}
   </div>
 </div>
 
-<!-- Ürün Ekle Modal -->
 <div class="modal-overlay" id="addModal" onclick="handleOverlayClick(event)">
   <div class="modal" id="modalBox">
     <div class="modal-handle"></div>
     <h2>Ürün Ekle</h2>
-
     <div class="scanner-wrap" id="scannerContainer" style="display:none">
       <div id="reader"></div>
       <button class="scanner-close" onclick="stopScanner()">Tarayıcıyı Kapat</button>
     </div>
-
     <div class="form-group">
       <label>Barkod (opsiyonel)</label>
       <div style="display:flex;gap:6px">
@@ -168,12 +163,10 @@ input:checked+.slider-tog:before{transform:translateX(18px)}
         <button class="cam-btn" onclick="startScanner()">📷</button>
       </div>
     </div>
-
     <div class="form-group">
       <label>Ürün Adı *</label>
       <input type="text" id="productName" placeholder="örn. Ülker Çikolata">
     </div>
-
     <div class="form-group">
       <label>Kategori</label>
       <select id="productCat">
@@ -189,7 +182,6 @@ input:checked+.slider-tog:before{transform:translateX(18px)}
         <option value="🛒">🛒 Diğer</option>
       </select>
     </div>
-
     <div class="form-row">
       <div class="form-group">
         <label>Son Kullanım Tarihi *</label>
@@ -200,7 +192,6 @@ input:checked+.slider-tog:before{transform:translateX(18px)}
         <input type="number" id="productQty" value="1" min="1" max="999">
       </div>
     </div>
-
     <div class="btn-row">
       <button class="btn-cancel" onclick="closeModal()">Vazgeç</button>
       <button class="btn-primary" onclick="saveProduct()">Kaydet</button>
@@ -233,6 +224,47 @@ function daysLeft(dateStr) {
   return Math.round((exp - now) / (1000 * 60 * 60 * 24));
 }
 
+// --- SESLİ UYARI ---
+function playAlarmSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    for (let i = 0; i < 3; i++) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, ctx.currentTime + i * 0.5);
+      gain.gain.setValueAtTime(0.3, ctx.currentTime + i * 0.5);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.5 + 0.4);
+      osc.start(ctx.currentTime + i * 0.5);
+      osc.stop(ctx.currentTime + i * 0.5 + 0.4);
+    }
+  } catch(e) {}
+}
+
+function checkAndPlaySound() {
+  if (localStorage.getItem('sktSound') !== '1') return;
+  const expired = products.filter(p => daysLeft(p.expiry) < 0);
+  const soon = products.filter(p => { const d = daysLeft(p.expiry); return d >= 0 && d <= 3; });
+  if (expired.length > 0 || soon.length > 0) {
+    playAlarmSound();
+  }
+}
+
+function toggleSound() {
+  const on = document.getElementById('soundToggle').checked;
+  if (on) {
+    localStorage.setItem('sktSound', '1');
+    playAlarmSound();
+    showToast('🔊 Sesli uyarı açıldı');
+  } else {
+    localStorage.removeItem('sktSound');
+    showToast('🔇 Sesli uyarı kapatıldı');
+  }
+}
+
+// --- YEDEKLEME ---
 function updateLastBackupInfo() {
   const ts = localStorage.getItem('sktLastBackup');
   const el = document.getElementById('lastBackupInfo');
@@ -271,17 +303,17 @@ function restoreBackup(event) {
       if (!data.products || !Array.isArray(data.products)) throw new Error('Geçersiz');
       if (!confirm('Mevcut ' + products.length + ' ürün silinip yerine ' + data.products.length + ' ürün yüklenecek.\nDevam edilsin mi?')) return;
       products = data.products;
-      save();
-      render();
+      save(); render();
       showToast('✅ ' + products.length + ' ürün geri yüklendi');
     } catch(err) {
-      alert('Hatalı dosya! Lütfen geçerli bir SKT yedek dosyası seçin.');
+      alert('Hatalı dosya!');
     }
     event.target.value = '';
   };
   reader.readAsText(file);
 }
 
+// --- RENDER ---
 function render() {
   const list = document.getElementById('productList');
   const alerts = document.getElementById('alertBanners');
@@ -303,18 +335,11 @@ function render() {
   sorted.forEach(p => {
     const d = daysLeft(p.expiry);
     let cls, badge, badgeTxt;
-
     if (d < 0) {
       cls = 'expired'; exp++;
       badgeTxt = Math.abs(d) + ' gün önce doldu';
       badge = 'expired';
-      alerts.innerHTML += `<div class="alert-banner">
-        <div class="alert-icon">⚠️</div>
-        <div>
-          <div class="alert-text">${p.name} süresi dolmuş!</div>
-          <div class="alert-sub">Lütfen bu ürünü raftan kaldırın</div>
-        </div>
-      </div>`;
+      alerts.innerHTML += '<div class="alert-banner"><div class="alert-icon">⚠️</div><div><div class="alert-text">' + p.name + ' süresi dolmuş!</div><div class="alert-sub">Lütfen bu ürünü raftan kaldırın</div></div></div>';
     } else if (d <= 7) {
       cls = 'soon'; soon++;
       badgeTxt = d === 0 ? 'Bugün bitiyor' : d + ' gün kaldı';
@@ -324,23 +349,9 @@ function render() {
       badgeTxt = d + ' gün kaldı';
       badge = 'ok';
     }
-
     const dateStr = new Date(p.expiry).toLocaleDateString('tr-TR');
-
-    list.innerHTML += `<div class="product-card ${cls}">
-      <div class="prod-icon">${p.cat}</div>
-      <div class="prod-info">
-        <div class="prod-name">${p.name}</div>
-        <div class="prod-barcode">${p.barcode} • ${p.qty} adet</div>
-        <div class="prod-meta">
-          <span class="badge ${badge}">${badgeTxt}</span>
-          <span class="prod-date">${dateStr}</span>
-        </div>
-      </div>
-      <button class="del-btn" onclick="deleteProduct('${p.id}')">🗑️</button>
-    </div>`;
+    list.innerHTML += '<div class="product-card ' + cls + '"><div class="prod-icon">' + p.cat + '</div><div class="prod-info"><div class="prod-name">' + p.name + '</div><div class="prod-barcode">' + p.barcode + ' • ' + p.qty + ' adet</div><div class="prod-meta"><span class="badge ' + badge + '">' + badgeTxt + '</span><span class="prod-date">' + dateStr + '</span></div></div><button class="del-btn" onclick="deleteProduct(\'' + p.id + '\')">🗑️</button></div>';
   });
-
   updateStats(exp, soon, ok);
 }
 
@@ -352,8 +363,7 @@ function updateStats(e, s, o) {
 
 function openAdd() {
   document.getElementById('addModal').classList.add('show');
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('expiryDate').value = today;
+  document.getElementById('expiryDate').value = new Date().toISOString().split('T')[0];
 }
 
 function closeModal() {
@@ -382,16 +392,13 @@ function startScanner() {
       showToast('✅ Barkod okundu: ' + code);
     }
   ).catch(() => {
-    alert('Kamera erişimi reddedildi. Tarayıcı ayarlarından izin verin.');
+    alert('Kamera erişimi reddedildi.');
     document.getElementById('scannerContainer').style.display = 'none';
   });
 }
 
 function stopScanner() {
-  if (scanner) {
-    try { scanner.stop(); } catch(e) {}
-    scanner = null;
-  }
+  if (scanner) { try { scanner.stop(); } catch(e) {} scanner = null; }
   document.getElementById('scannerContainer').style.display = 'none';
 }
 
@@ -401,23 +408,10 @@ function saveProduct() {
   const expiry = document.getElementById('expiryDate').value;
   const cat = document.getElementById('productCat').value;
   const qty = parseInt(document.getElementById('productQty').value) || 1;
-
   if (!name) { alert('Lütfen ürün adı girin.'); return; }
   if (!expiry) { alert('Lütfen son kullanım tarihi girin.'); return; }
-
-  products.push({
-    id: Date.now().toString(),
-    barcode: barcode || 'Manuel',
-    name,
-    expiry,
-    cat,
-    qty,
-    added: new Date().toISOString()
-  });
-
-  save();
-  render();
-  closeModal();
+  products.push({ id: Date.now().toString(), barcode: barcode || 'Manuel', name, expiry, cat, qty, added: new Date().toISOString() });
+  save(); render(); closeModal();
   showToast('✅ ' + name + ' eklendi');
 }
 
@@ -425,8 +419,7 @@ function deleteProduct(id) {
   const p = products.find(x => x.id === id);
   if (!confirm((p ? p.name : 'Ürün') + ' silinsin mi?')) return;
   products = products.filter(x => x.id !== id);
-  save();
-  render();
+  save(); render();
   showToast('🗑️ Ürün silindi');
 }
 
@@ -437,10 +430,7 @@ function checkAndNotify() {
   if (expired.length) parts.push(expired.length + ' ürünün süresi dolmuş!');
   if (soon.length) parts.push(soon.length + ' ürün 3 gün içinde bitiyor!');
   if (parts.length && 'Notification' in window && Notification.permission === 'granted') {
-    new Notification('🍪 SKT Takip', {
-      body: parts.join(' '),
-      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">🍪</text></svg>'
-    });
+    new Notification('🍪 SKT Takip', { body: parts.join(' ') });
   }
 }
 
@@ -456,12 +446,9 @@ function toggleNotif() {
           showToast('🔔 Bildirimler açıldı');
         } else {
           document.getElementById('notifToggle').checked = false;
-          alert('Bildirim izni reddedildi.\nTarayıcı ayarlarından bu siteye izin verin.');
+          alert('Bildirim izni reddedildi.');
         }
       });
-    } else {
-      alert('Bu tarayıcı bildirimleri desteklemiyor.');
-      document.getElementById('notifToggle').checked = false;
     }
   } else {
     if (notifInterval) clearInterval(notifInterval);
@@ -470,7 +457,7 @@ function toggleNotif() {
   }
 }
 
-// Başlangıç
+// --- BAŞLANGIÇ ---
 if (localStorage.getItem('sktNotif') === '1') {
   document.getElementById('notifToggle').checked = true;
   if ('Notification' in window && Notification.permission === 'granted') {
@@ -478,6 +465,15 @@ if (localStorage.getItem('sktNotif') === '1') {
     notifInterval = setInterval(checkAndNotify, 24 * 60 * 60 * 1000);
   }
 }
+
+if (localStorage.getItem('sktSound') === '1') {
+  document.getElementById('soundToggle').checked = true;
+  document.body.addEventListener('click', function onFirst() {
+    checkAndPlaySound();
+    document.body.removeEventListener('click', onFirst);
+  }, { once: true });
+}
+
 updateLastBackupInfo();
 render();
 </script>
